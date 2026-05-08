@@ -1,12 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 
 const NAV_LINKS = [
-  { label: "Fitur",     href: "#platform" },
-  { label: "Bisnis",     href: "#business" },
-  { label: "Aplikasi",   href: "#apps" },
-  { label: "Harga",      href: "#pricing" },
+  { label: "Beranda", href: "/" },
 ]
 
 const RESOURCE_LINKS = [
@@ -41,14 +39,14 @@ export function MobileNav() {
           style={NAV_STYLE}
         >
           <div className="flex items-center gap-2">
-            <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <img 
                 src="/logo/logo-klikin.webp" 
                 alt="Klikin" 
                 className="w-5 h-5 object-contain"
               />
               <span className="font-pixel text-[10px] tracking-[0.25em] text-black/70 uppercase">KLIKIN</span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop links */}
@@ -76,13 +74,23 @@ export function MobileNav() {
               <div className="absolute top-full right-0 mt-2 w-48 rounded-xl border border-black/[0.06] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" style={NAV_STYLE}>
                 <div className="py-2">
                   {RESOURCE_LINKS.map(l => (
-                    <a
-                      key={l.label}
-                      href={l.href}
-                      className="block px-4 py-2 text-[11px] text-black/60 hover:text-black hover:bg-black/[0.03] transition-colors tracking-wide"
-                    >
-                      {l.label}
-                    </a>
+                    l.href.startsWith("/") ? (
+                      <Link
+                        key={l.label}
+                        href={l.href}
+                        className="block px-4 py-2 text-[11px] text-black/60 hover:text-black hover:bg-black/[0.03] transition-colors tracking-wide"
+                      >
+                        {l.label}
+                      </Link>
+                    ) : (
+                      <a
+                        key={l.label}
+                        href={l.href}
+                        className="block px-4 py-2 text-[11px] text-black/60 hover:text-black hover:bg-black/[0.03] transition-colors tracking-wide"
+                      >
+                        {l.label}
+                      </a>
+                    )
                   ))}
                 </div>
               </div>

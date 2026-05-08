@@ -2,6 +2,7 @@
 
 import { useState, useEffect, memo } from "react"
 import { OptimizedImage } from "./optimized-image"
+import { PixelIcon } from "@/components/pixel-icon"
 
 const STEPS = [
   {
@@ -61,6 +62,7 @@ export const DevExSection = memo(function DevExSection() {
     <section id="devex" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
       <div className="max-w-6xl mx-auto">
         <div className="mb-16">
+          <PixelIcon type="kasir" size={40} />
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.05] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase">
             Pengalaman Pengguna
           </div>
@@ -150,6 +152,7 @@ export const DevExSection = memo(function DevExSection() {
                   opacity: visible ? 1 : 0,
                   transform: visible ? "scale(1)" : "scale(0.98)",
                   transition: "opacity 300ms ease-out, transform 300ms ease-out",
+                  willChange: "opacity, transform",
                 }}
               >
                 <OptimizedImage

@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect, useState, useCallback, memo, lazy, Suspense } from "react"
 import dynamic from "next/dynamic"
-import { IntroAnimation, HERO_REVEAL_MS } from "@/components/intro-animation"
 import { PixelIcon } from "@/components/pixel-icon"
 import { LiveAgentFeed, LiveAgentCounter } from "@/components/live-agent-feed"
 import { RevealText } from "@/components/reveal-text"
@@ -12,6 +11,7 @@ import { OptimizedImage } from "@/components/optimized-image"
 import { BusinessTypeCards } from "@/components/business-type-cards"
 import { FAQSection } from "@/components/faq-section"
 import { Shield, Lock, Eye, CheckCircle2 } from "lucide-react"
+import Link from "next/link"
 
 // Dynamic imports for heavy components - load only when needed
 const DevExSection = dynamic(() => import("@/components/devex-section").then(mod => ({ default: mod.DevExSection })), {
@@ -20,7 +20,7 @@ const DevExSection = dynamic(() => import("@/components/devex-section").then(mod
 })
 
 // ─── Intersection Observer hook (optimized) ──────────────────────────────────
-function useInView(threshold = 0.1) {
+function useInView(threshold = 0.1, margin = '100px') {
   const ref = useRef<HTMLDivElement>(null)
   const [inView, setInView] = useState(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -29,6 +29,10 @@ function useInView(threshold = 0.1) {
     const el = ref.current
     if (!el || inView) return
     
+    // Use a larger margin on mobile for smoother reveal
+    const isMobile = window.matchMedia('(max-width: 768px)').matches
+    const effectiveMargin = isMobile ? '150px' : margin
+
     // Reuse observer instance
     if (!observerRef.current) {
       observerRef.current = new IntersectionObserver(
@@ -39,7 +43,7 @@ function useInView(threshold = 0.1) {
             observerRef.current?.disconnect()
           }
         }, 
-        { threshold, rootMargin: '50px' } // Reduced for better performance
+        { threshold, rootMargin: effectiveMargin }
       )
     }
     
@@ -49,7 +53,7 @@ function useInView(threshold = 0.1) {
         observerRef.current.disconnect()
       }
     }
-  }, [threshold, inView])
+  }, [threshold, inView, margin])
   
   return { ref, inView }
 }
@@ -141,26 +145,7 @@ const Tag = memo(function Tag({ children }: { children: React.ReactNode }) {
 
 // ─── CTA Section ──────────────────────────────────────────────────────────────
 const CTASection = memo(function CTASection({ email, setEmail, submitted, setSubmitted }: { email: string; setEmail: (v: string) => void; submitted: boolean; setSubmitted: (v: boolean) => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.1, rootMargin: "50px" }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
+  const { ref, inView: isVisible } = useInView(0.1, "100px")
 
   return (
     <section 
@@ -168,8 +153,10 @@ const CTASection = memo(function CTASection({ email, setEmail, submitted, setSub
       className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden"
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+        transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 30px, 0)',
         transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
+        willChange: 'opacity, transform',
+        contain: 'content',
       }}
     >
       <OptimizedImage
@@ -234,26 +221,7 @@ const CTASection = memo(function CTASection({ email, setEmail, submitted, setSub
 
 // ─── Footer Section ───────────────────────────────────────────────────────────
 const FooterSection = memo(function FooterSection() {
-  const ref = useRef<HTMLElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
+  const { ref, inView: isVisible } = useInView(0.05, "50px")
 
   return (
     <footer 
@@ -261,8 +229,10 @@ const FooterSection = memo(function FooterSection() {
       className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]"
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+        transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 20px, 0)',
         transition: 'opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1)',
+        willChange: 'opacity, transform',
+        contain: 'content',
       }}
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -309,26 +279,7 @@ const FooterSection = memo(function FooterSection() {
 
 // ─── Promo Section with Marquee ───────────────────────────────────────────────
 const PromoSection = memo(function PromoSection() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.1, rootMargin: "50px" }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
+  const { ref, inView: isVisible } = useInView(0.1, "150px")
 
   return (
     <div 
@@ -336,8 +287,10 @@ const PromoSection = memo(function PromoSection() {
       className="relative w-full rounded-[40px] overflow-hidden bg-[#F2F1ED] border border-white/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]"
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+        transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 30px, 0)',
         transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
+        willChange: 'opacity, transform',
+        contain: 'paint',
       }}
     >
       {/* Animated Marquee Text Background */}
@@ -357,6 +310,9 @@ const PromoSection = memo(function PromoSection() {
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center p-10 lg:p-20 gap-16">
         {/* Center: Text Content */}
         <div className="max-w-md space-y-6 text-center">
+          <div className="flex justify-center">
+            <PixelIcon type="promo" size={40} />
+          </div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase">
             Promo Terbatas
           </div>
@@ -451,7 +407,7 @@ export default function KasirPintarPage() {
             style={{
               fontFamily: '"IBM Plex Sans", sans-serif',
               opacity: heroReady ? 1 : 0,
-              transform: heroReady ? "translateY(0px)" : "translateY(16px)",
+              transform: heroReady ? "translate3d(0, 0, 0)" : "translate3d(0, 16px, 0)",
               transition: "opacity 1.2s cubic-bezier(0.22,1,0.36,1) 0ms, transform 1.2s cubic-bezier(0.22,1,0.36,1) 0ms",
               willChange: heroReady ? "auto" : "opacity, transform",
               backfaceVisibility: "hidden",
@@ -472,7 +428,7 @@ export default function KasirPintarPage() {
                 key={i}
                 style={{
                   opacity: heroReady ? 1 : 0,
-                  transform: heroReady ? "translateY(0px)" : "translateY(12px)",
+                  transform: heroReady ? "translate3d(0, 0, 0)" : "translate3d(0, 12px, 0)",
                   transition: `opacity 0.8s cubic-bezier(0.22,1,0.36,1) ${200 + i * 80}ms, transform 0.8s cubic-bezier(0.22,1,0.36,1) ${200 + i * 80}ms`,
                   willChange: heroReady ? "auto" : "opacity, transform",
                   backfaceVisibility: "hidden",
@@ -861,7 +817,7 @@ export default function KasirPintarPage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div>
-              <PixelIcon type="agents" size={40} />
+              <PixelIcon type="counter" size={40} />
               <div className="mt-4"><Tag>TRANSAKSI REAL-TIME</Tag></div>
               <RevealText className="mt-5 text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05]">
                 {"Transaksi berjalan\notomatis 24/7."}
@@ -972,14 +928,14 @@ export default function KasirPintarPage() {
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
       <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img 
               src="/logo/logo-klikin.webp" 
               alt="Klikin" 
               className="w-5 h-5 object-contain"
             />
             <span className="font-pixel text-[10px] tracking-[0.25em] text-black/50">KLIKIN</span>
-          </a>
+          </Link>
 
           {/* Nav sections */}
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">

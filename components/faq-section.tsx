@@ -2,6 +2,8 @@
 
 import { useState, memo } from "react"
 import { ChevronDown } from "lucide-react"
+import Link from "next/link"
+import { PixelIcon } from "@/components/pixel-icon"
 
 interface FAQItem {
   question: string
@@ -82,7 +84,8 @@ export const FAQSection = memo(function FAQSection() {
     <div className="w-full">
       {/* Header */}
       <div className="mb-12 px-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase mb-4">
+        <PixelIcon type="faq" size={40} />
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase mb-4 mt-4">
           FAQ
         </div>
         <h2 className="text-3xl md:text-5xl font-bold text-black/90 mb-3">
@@ -105,12 +108,12 @@ export const FAQSection = memo(function FAQSection() {
         <p className="text-sm text-black/60 mb-4">
           Masih ada pertanyaan lain?
         </p>
-        <a 
-          href="/contact" 
+        <Link
+          href="/contact"
           className="inline-block px-8 py-3 bg-[#111] hover:bg-[#333] text-white rounded-full font-medium transition-all duration-300 shadow-lg shadow-black/10 hover:scale-105 active:scale-95 text-sm tracking-wide"
         >
           Hubungi Kami
-        </a>
+        </Link>
       </div>
     </div>
   )

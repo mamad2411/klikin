@@ -1,110 +1,9 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect, memo } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { MobileNav } from "@/components/mobile-nav"
-import { HERO_REVEAL_MS } from "@/components/intro-animation"
-
-// ─── Intersection Observer hook ──────────────────────────────────────
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  
-  useEffect(() => {
-    const el = ref.current
-    if (!el || inView) return
-    
-    if (!observerRef.current) {
-      observerRef.current = new IntersectionObserver(
-        ([e]) => { 
-          if (e.isIntersecting) {
-            setInView(true)
-            observerRef.current?.disconnect()
-          }
-        }, 
-        { threshold, rootMargin: '50px' }
-      )
-    }
-    
-    observerRef.current.observe(el)
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect()
-      }
-    }
-  }, [threshold, inView])
-  
-  return { ref, inView }
-}
-
-// ─── Promo Section ────────────────────────────────────────────────────
-const PromoSection = memo(function PromoSection() {
-  const { ref, inView: isVisible } = useInView(0.15)
-
-  return (
-    <div 
-      ref={ref}
-      className="relative w-full rounded-[40px] overflow-hidden bg-[#F2F1ED] border border-white/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-        transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
-      }}
-    >
-      {/* Animated Marquee Text Background */}
-      <div className="absolute inset-0 flex flex-col justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
-        <div className="flex whitespace-nowrap" style={{ animation: "marqueeLeft 40s linear infinite" }}>
-          {[...Array(6)].map((_, i) => (
-            <span key={i} className="text-8xl font-black mx-4">PENAWARAN TERBAIK • KASIR PINTAR • SOLUSI BISNIS • </span>
-          ))}
-        </div>
-        <div className="flex whitespace-nowrap mt-4" style={{ animation: "marqueeRight 50s linear infinite" }}>
-          {[...Array(6)].map((_, i) => (
-            <span key={i} className="text-8xl font-black mx-4">DISKON UMKM • PROMO SPESIAL • KASIR DIGITAL • </span>
-          ))}
-        </div>
-      </div>
-      
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center p-10 lg:p-20 gap-16">
-        {/* Center: Text Content */}
-        <div className="max-w-md space-y-6 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase">
-            Promo Terbatas
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-black/90 leading-tight">
-            Lihat Penawaran Terbaik<br />Produk Klikin
-          </h2>
-          <p className="text-base text-black/45 font-light leading-relaxed">
-            Pilih produk sesuai dengan kebutuhan bisnismu dan dapatkan efisiensi maksimal mulai hari ini.
-          </p>
-          <div className="flex flex-wrap gap-4 items-center justify-center">
-            <a href="/#pricing" className="inline-block px-10 py-4 bg-[#111] hover:bg-[#333] text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-black/10 hover:scale-105 active:scale-95 tracking-widest text-xs uppercase">
-              Lihat Penawaran
-            </a>
-            <div className="flex -space-x-3 items-center">
-              {[
-                "https://i.pravatar.cc/100?u=1",
-                "https://i.pravatar.cc/100?u=2",
-                "https://i.pravatar.cc/100?u=3",
-                "https://i.pravatar.cc/100?u=4"
-              ].map((url, i) => (
-                <div key={i} className="w-9 h-9 rounded-full border-2 border-[#F2F1ED] bg-white overflow-hidden shadow-md">
-                  <img 
-                    src={url} 
-                    alt={`User ${i}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-              <span className="ml-5 text-[10px] font-medium text-black/30 tracking-widest uppercase italic">Diterapkan 10rb+ Bisnis</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-})
-
+import Link from "next/link"
+import { OptimizedImage } from "@/components/optimized-image"
 export default function ContactPage() {
   const [introReady, setIntroReady] = useState(true)
   const [formData, setFormData] = useState({
@@ -349,24 +248,24 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Promo Section */}
+      {/* CTA Section */}
       <section className="px-6 md:px-12 lg:px-20 pb-20">
         <div className="max-w-6xl mx-auto">
-          <PromoSection />
+          <CTASection />
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img 
               src="/logo/logo-klikin.webp" 
               alt="Klikin" 
               className="w-5 h-5 object-contain"
             />
             <span className="font-pixel text-[10px] tracking-[0.25em] text-black/50">KLIKIN</span>
-          </a>
+          </Link>
 
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             {[

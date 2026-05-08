@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react"
 // Each icon is a 12×12 pixel grid animated at 60fps with RAF
 // Colors are black at varying opacity to match the light theme
 
-type IconType = "platform" | "agents" | "workflow" | "integrations" | "pricing"
+type IconType = "platform" | "agents" | "workflow" | "integrations" | "pricing" | "faq" | "kasir" | "promo" | "realtime" | "counter"
 
 interface PixelIconProps {
   type: IconType
@@ -230,6 +230,189 @@ function drawPricing(ctx: CanvasRenderingContext2D, W: number, t: number) {
   })
 }
 
+// ── FAQ icon: question mark pixel art that pulses and bounces ─────────────────
+function drawFaq(ctx: CanvasRenderingContext2D, W: number, t: number) {
+  const ps = Math.floor(W / 10)
+  const cx = W / 2
+
+  // Question mark pixel shape (8 rows x 5 cols)
+  const shape = [
+    [0,1,1,1,0],
+    [1,0,0,0,1],
+    [0,0,0,0,1],
+    [0,0,0,1,0],
+    [0,0,1,0,0],
+    [0,0,1,0,0],
+    [0,0,0,0,0],
+    [0,0,1,0,0],
+  ]
+
+  const rows = shape.length
+  const cols = shape[0].length
+  const offX = cx - (cols * ps) / 2
+  const offY = W * 0.08
+
+  // Bounce animation
+  const bounce = Math.sin(t * 0.002) * ps * 0.6
+
+  shape.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (!cell) return
+      const wave = Math.sin(t * 0.003 + r * 0.5 + c * 0.3)
+      const alpha = 0.25 + 0.6 * ((wave + 1) / 2)
+      ctx.fillStyle = `rgba(0,0,0,${alpha})`
+      ctx.fillRect(offX + c * ps, offY + r * ps + bounce, ps - 1, ps - 1)
+    })
+  })
+}
+
+// ── Kasir icon: cash register with receipt printing ──────────────────────────
+function drawKasir(ctx: CanvasRenderingContext2D, W: number, t: number) {
+  const ps = Math.floor(W / 10)
+
+  // Cash register body (7x5)
+  const body = [
+    [1,1,1,1,1,1,1],
+    [1,0,1,0,1,0,1],
+    [1,0,1,0,1,0,1],
+    [1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,0],
+  ]
+
+  const bodyOffX = Math.floor((W - 7 * ps) / 2)
+  const bodyOffY = Math.floor(W * 0.15)
+
+  body.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (!cell) return
+      const isButton = r === 1 || r === 2
+      const alpha = isButton
+        ? 0.15 + 0.7 * ((Math.sin(t * 0.004 + c * 1.2) + 1) / 2)
+        : 0.7
+      ctx.fillStyle = `rgba(0,0,0,${alpha})`
+      ctx.fillRect(bodyOffX + c * ps, bodyOffY + r * ps, ps - 1, ps - 1)
+    })
+  })
+
+  // Receipt printing out from bottom - animated
+  const receiptLen = Math.floor(((Math.sin(t * 0.002) + 1) / 2) * 3) + 1
+  const receiptX = Math.floor(W / 2) - ps
+  const receiptStartY = bodyOffY + 5 * ps + 1
+
+  for (let i = 0; i < receiptLen; i++) {
+    const alpha = 0.5 - i * 0.12
+    ctx.fillStyle = `rgba(0,0,0,${Math.max(0.1, alpha)})`
+    ctx.fillRect(receiptX, receiptStartY + i * ps, ps * 2, ps - 2)
+  }
+}
+
+// ── Promo icon: discount tag with star burst ──────────────────────────────────
+function drawPromo(ctx: CanvasRenderingContext2D, W: number, t: number) {
+  const ps = Math.floor(W / 10)
+  const cx = W / 2
+  const cy = W / 2
+
+  // Star burst - 8 rays rotating
+  const rays = 8
+  for (let i = 0; i < rays; i++) {
+    const angle = (i / rays) * Math.PI * 2 + t * 0.001
+    const len = 3 + Math.sin(t * 0.003 + i) * 1
+    for (let d = 1; d <= len; d++) {
+      const x = cx + Math.cos(angle) * d * ps
+      const y = cy + Math.sin(angle) * d * ps
+      const alpha = (0.6 - d * 0.15) * (0.5 + 0.5 * Math.sin(t * 0.004 + i * 0.8))
+      ctx.fillStyle = `rgba(0,0,0,${Math.max(0, alpha)})`
+      ctx.fillRect(Math.round(x / ps) * ps - ps / 2, Math.round(y / ps) * ps - ps / 2, ps - 1, ps - 1)
+    }
+  }
+
+  // Center pulsing square
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.004)
+  const cs = ps * (1.2 + pulse * 0.4)
+  ctx.fillStyle = `rgba(0,0,0,${0.6 + pulse * 0.3})`
+  ctx.fillRect(cx - cs / 2, cy - cs / 2, cs, cs)
+}
+
+// ── Realtime icon: pulse/signal waves radiating from center ──────────────────
+function drawRealtime(ctx: CanvasRenderingContext2D, W: number, t: number) {
+  const ps = Math.floor(W / 10)
+  const cx = W / 2
+  const cy = W / 2
+
+  // Radiating rings - 3 rings expanding outward
+  for (let ring = 0; ring < 3; ring++) {
+    const phase = (t * 0.002 + ring * 0.33) % 1
+    const radius = phase * W * 0.45
+    const alpha = (1 - phase) * 0.7
+
+    // Draw ring as pixel dots
+    const dots = 16
+    for (let d = 0; d < dots; d++) {
+      const angle = (d / dots) * Math.PI * 2
+      const x = cx + Math.cos(angle) * radius
+      const y = cy + Math.sin(angle) * radius
+      ctx.fillStyle = `rgba(0,0,0,${alpha})`
+      ctx.fillRect(Math.round(x / ps) * ps - ps / 2, Math.round(y / ps) * ps - ps / 2, ps - 1, ps - 1)
+    }
+  }
+
+  // Center dot pulsing
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.005)
+  const cs = ps * 1.5
+  ctx.fillStyle = `rgba(0,0,0,${pulse})`
+  ctx.fillRect(cx - cs / 2, cy - cs / 2, cs, cs)
+}
+
+// ── Counter icon: pixel digits rapidly counting up ────────────────────────────
+function drawCounter(ctx: CanvasRenderingContext2D, W: number, t: number) {
+  const ps = Math.floor(W / 12)
+
+  // 5x7 pixel font segments for digits 0-9
+  const DIGITS: number[][][] = [
+    [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]], // 0
+    [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]], // 1
+    [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]], // 2
+    [[1,1,1],[0,0,1],[0,1,1],[0,0,1],[1,1,1]], // 3
+    [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]], // 4
+    [[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]], // 5
+    [[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]], // 6
+    [[1,1,1],[0,0,1],[0,1,0],[0,1,0],[0,1,0]], // 7
+    [[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]], // 8
+    [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]], // 9
+  ]
+
+  // Two digits that count rapidly
+  const speed = 0.008
+  const d1 = Math.floor(t * speed) % 10
+  const d2 = Math.floor(t * speed * 3.7) % 10
+
+  const digitW = 3 * ps + ps
+  const totalW = digitW * 2 + ps
+  const startX = Math.floor((W - totalW) / 2)
+  const startY = Math.floor(W * 0.2)
+
+  ;[d1, d2].forEach((digit, di) => {
+    const grid = DIGITS[digit]
+    const ox = startX + di * (digitW + ps)
+    grid.forEach((row, r) => {
+      row.forEach((cell, c) => {
+        if (!cell) return
+        const flicker = 0.5 + 0.5 * Math.sin(t * 0.01 + di * 2.1 + r * 0.5)
+        ctx.fillStyle = `rgba(0,0,0,${0.3 + flicker * 0.6})`
+        ctx.fillRect(ox + c * (ps + 1), startY + r * (ps + 1), ps, ps)
+      })
+    })
+  })
+
+  // Small "+" indicator below
+  const plusY = startY + 6 * (ps + 1)
+  const plusX = startX + totalW / 2 - ps / 2
+  const plusAlpha = 0.3 + 0.4 * Math.sin(t * 0.005)
+  ctx.fillStyle = `rgba(0,0,0,${plusAlpha})`
+  ctx.fillRect(plusX, plusY + ps, ps * 2, ps)
+  ctx.fillRect(plusX + ps / 2, plusY + ps / 2, ps, ps * 2)
+}
+
 // ── Canvas wrapper ────────────────────────────────────────────────────────────
 export function PixelIcon({ type, size = 40 }: PixelIconProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -256,6 +439,11 @@ export function PixelIcon({ type, size = 40 }: PixelIconProps) {
         case "workflow":      drawWorkflow(ctx, size, t);      break
         case "integrations":  drawIntegrations(ctx, size, t);  break
         case "pricing":       drawPricing(ctx, size, t);       break
+        case "faq":           drawFaq(ctx, size, t);           break
+        case "kasir":         drawKasir(ctx, size, t);         break
+        case "promo":         drawPromo(ctx, size, t);         break
+        case "realtime":      drawRealtime(ctx, size, t);      break
+        case "counter":       drawCounter(ctx, size, t);       break
       }
 
       rafRef.current = requestAnimationFrame(draw)
