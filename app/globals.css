@@ -77,6 +77,7 @@
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-serif: 'Playfair Display', 'Georgia', serif;
   --font-pixel: 'Courier Prime', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -120,9 +121,43 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: clip; /* Absolutely prevent body from having its own scrollbar */
   }
+}
+
+/* Permanent Black Scrollbar - Webkit */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f4f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #111;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #000;
+}
+
+/* Permanent Black Scrollbar - Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #111 #f5f4f0;
 }
 
 /* Glitch Animation */
@@ -198,41 +233,6 @@
   50% { opacity: 0.4; transform: scale(0.8) }
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Custom Scrollbar - Black Design */
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-  border: 2px solid rgba(245, 244, 240, 1);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
-}
 
 /* Browser compatibility fixes */
 * {
@@ -240,7 +240,7 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-img {
+img, video {
   max-width: 100%;
   height: auto;
   display: block;

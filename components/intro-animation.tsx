@@ -52,29 +52,44 @@ export function IntroAnimation({ onDone, text = "KLIKIN" }: IntroAnimationProps)
       }
     }
 
-    // Defer scheduling to ensure we are in a rendering frame and to handle React Strict Mode.
-    // Using requestAnimationFrame + setTimeout(0) for maximum compatibility with history restoration.
-    const rafId = requestAnimationFrame(() => {
-      const outer = setTimeout(() => {
-        const push = (fn: () => void, ms: number) => {
-          const id = setTimeout(fn, ms)
-          timersRef.current.push(id)
-        }
-        push(() => setPhase("in"), 40)
-        push(() => setPhase("out"), LETTERS_IN_TOTAL)
-        push(() => setCurtainUp(true), CURTAIN_DELAY)
-        push(finish, DONE_MS)
-        push(() => setPhase("done"), ANIM_TOTAL)
-      }, 0)
-      timersRef.current.push(outer)
-    })
+    // Hide overflow on both html and body during animation
+    const htmlElement = document.documentElement
+    const bodyElement = document.body
+    const originalHtmlOverflow = htmlElement.style.overflow
+    const originalBodyOverflow = bodyElement.style.overflow
+    
+    htmlElement.style.overflow = 'hidden'
+    bodyElement.style.overflow = 'hidden'
+
+    // Start timers immediately to handle history restoration reliably
+    const push = (fn: () => void, ms: number) => {
+      const id = setTimeout(fn, ms)
+      timersRef.current.push(id)
+    }
+
+    // Phase 1: Show letters
+    push(() => setPhase("in"), 50)
+    
+    // Phase 2: Start exit transition
+    push(() => setPhase("out"), LETTERS_IN_TOTAL)
+    
+    // Phase 3: Lift the curtain
+    push(() => setCurtainUp(true), CURTAIN_DELAY)
+    
+    // Phase 4: Notify parent we are done
+    push(finish, DONE_MS)
+    
+    // Phase 5: Clean up component
+    push(() => setPhase("done"), ANIM_TOTAL)
 
     const safety = setTimeout(finish, DONE_MS + 2000)
 
     return () => {
-      cancelAnimationFrame(rafId)
       clearTimeout(safety)
       clearAll()
+      // Restore overflow
+      htmlElement.style.overflow = originalHtmlOverflow
+      bodyElement.style.overflow = originalBodyOverflow
     }
     // Timings are fixed for this mount; use ref for onDone so parent re-renders
     // cannot retrigger this effect and starve the setTimeout(0) chain.
@@ -84,14 +99,14 @@ export function IntroAnimation({ onDone, text = "KLIKIN" }: IntroAnimationProps)
   if (phase === "done") return null
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none" aria-hidden="true">
+    <div className="fixed inset-0 z-[9999] pointer-events-none" aria-hidden="true">
       {/* Curtain */}
       <div
         className="absolute inset-x-0 top-0"
         style={{
           bottom: curtainUp ? "100%" : "0%",
           transition: curtainUp ? `bottom ${CURTAIN_DURATION}ms cubic-bezier(0.76, 0, 0.24, 1)` : "none",
-          background: "#f5f4f1",
+          background: "#F5F4F0",
         }}
       />
 

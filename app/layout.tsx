@@ -1,6 +1,6 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, IBM_Plex_Sans } from 'next/font/google'
+import { Geist, Geist_Mono, IBM_Plex_Sans, Playfair_Display } from 'next/font/google'
 import { Courier_Prime } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { LayoutWrapper } from '@/components/layout-wrapper'
@@ -10,6 +10,7 @@ const _geist = Geist({ subsets: ["latin"], display: 'swap' });
 const _geistMono = Geist_Mono({ subsets: ["latin"], display: 'swap' });
 const _courierPrime = Courier_Prime({ weight: ["400", "700"], subsets: ["latin"], display: 'swap' });
 const _ibmPlexSans = IBM_Plex_Sans({ weight: ["300", "400", "500", "600"], subsets: ["latin"], display: 'swap' });
+const _playfair = Playfair_Display({ subsets: ["latin"], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Kasir Pintar — Aplikasi Kasir Digital Terbaik untuk UMKM',
@@ -74,33 +75,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
         <link rel="dns-prefetch" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
       </head>
-      <body className={`font-sans antialiased`}>
-        <style dangerouslySetInnerHTML={{__html: `
-          /* Custom Black Scrollbar */
-          ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-          }
-          
-          ::-webkit-scrollbar-track {
-            background: #f5f4f0;
-          }
-          
-          ::-webkit-scrollbar-thumb {
-            background: #111;
-            border-radius: 5px;
-          }
-          
-          ::-webkit-scrollbar-thumb:hover {
-            background: #000;
-          }
-          
-          /* Firefox */
-          * {
-            scrollbar-width: thin;
-            scrollbar-color: #111 #f5f4f0;
-          }
-        `}} />
+      <body className={`${_geist.className} ${_geistMono.className} ${_courierPrime.className} ${_ibmPlexSans.className} ${_playfair.className} antialiased`}>
         <LayoutWrapper>
           {children}
         </LayoutWrapper>

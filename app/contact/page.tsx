@@ -1,11 +1,123 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
-import { MobileNav } from "@/components/mobile-nav"
+import { useState, useCallback, useRef, useEffect, memo } from "react"
 import Link from "next/link"
 import { OptimizedImage } from "@/components/optimized-image"
+import { PixelIcon } from "@/components/pixel-icon"
+import { IntroAnimation } from "@/components/intro-animation"
+
+// ─── Intersection Observer hook ──────────────────────────────────────
+function useInView(threshold = 0.1, margin = '100px') {
+  const ref = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  
+  useEffect(() => {
+    const el = ref.current
+    if (!el || inView) return
+    
+    const isMobile = window.matchMedia('(max-width: 768px)').matches
+    const effectiveMargin = isMobile ? '150px' : margin
+
+    if (!observerRef.current) {
+      observerRef.current = new IntersectionObserver(
+        ([e]) => { 
+          if (e.isIntersecting) {
+            setInView(true)
+            observerRef.current?.disconnect()
+          }
+        }, 
+        { threshold, rootMargin: effectiveMargin }
+      )
+    }
+    
+    observerRef.current.observe(el)
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [threshold, inView, margin])
+  
+  return { ref, inView }
+}
+
+// ─── Promo Section ────────────────────────────────────────────────────
+const PromoSection = memo(function PromoSection() {
+  const { ref, inView: isVisible } = useInView(0.1, "150px")
+
+  return (
+    <div 
+      ref={ref}
+      className="relative w-full rounded-[40px] overflow-hidden bg-[#F2F1ED] border border-white/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 30px, 0)',
+        transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
+        willChange: 'opacity, transform',
+        contain: 'paint',
+      }}
+    >
+      {/* Animated Marquee Text Background */}
+      <div className="absolute inset-0 flex flex-col justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
+        <div className="flex whitespace-nowrap" style={{ animation: "marqueeLeft 40s linear infinite" }}>
+          {[...Array(6)].map((_, i) => (
+            <span key={i} className="text-8xl font-black mx-4">PENAWARAN TERBAIK • KASIR PINTAR • SOLUSI BISNIS • </span>
+          ))}
+        </div>
+        <div className="flex whitespace-nowrap mt-4" style={{ animation: "marqueeRight 50s linear infinite" }}>
+          {[...Array(6)].map((_, i) => (
+            <span key={i} className="text-8xl font-black mx-4">DISKON UMKM • PROMO SPESIAL • KASIR DIGITAL • </span>
+          ))}
+        </div>
+      </div>
+      
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center p-10 lg:p-20 gap-16">
+        {/* Center: Text Content */}
+        <div className="max-w-md space-y-6 text-center">
+          <div className="flex justify-center">
+            <PixelIcon type="promo" size={40} />
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase">
+            Promo Terbatas
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold text-black/90 leading-tight">
+            Lihat Penawaran Terbaik<br />Produk Klikin
+          </h2>
+          <p className="text-base text-black/45 font-light leading-relaxed">
+            Pilih produk sesuai dengan kebutuhan bisnismu dan dapatkan efisiensi maksimal mulai hari ini.
+          </p>
+          <div className="flex flex-wrap gap-4 items-center justify-center">
+            <a href="/#pricing" className="inline-block px-10 py-4 bg-[#111] hover:bg-[#333] text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-black/10 hover:scale-105 active:scale-95 tracking-widest text-xs uppercase">
+              Lihat Penawaran
+            </a>
+            <div className="flex -space-x-3 items-center">
+              {[
+                "https://i.pravatar.cc/100?u=1",
+                "https://i.pravatar.cc/100?u=2",
+                "https://i.pravatar.cc/100?u=3",
+                "https://i.pravatar.cc/100?u=4"
+              ].map((url, i) => (
+                <div key={i} className="w-9 h-9 rounded-full border-2 border-[#F2F1ED] bg-white overflow-hidden shadow-md">
+                  <img 
+                    src={url} 
+                    alt={`User ${i}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>           
+              ))}
+              <span className="ml-5 text-[10px] font-medium text-black/30 tracking-widest uppercase italic">Diterapkan 10rb+ Bisnis</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+})
+
 export default function ContactPage() {
-  const [introReady, setIntroReady] = useState(true)
+  const [showIntro, setShowIntro] = useState(true)
+  const [contentReady, setContentReady] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -15,6 +127,12 @@ export default function ContactPage() {
     message: ""
   })
   const [submitted, setSubmitted] = useState(false)
+
+  const handleIntroComplete = useCallback(() => {
+    setShowIntro(false)
+    // Delay content reveal slightly for smoother transition
+    setTimeout(() => setContentReady(true), 100)
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,21 +152,21 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="bg-[#F5F4F0] min-h-screen font-sans antialiased">
-      {/* Header */}
-      <MobileNav />
+    <div className="bg-[#F5F4F0] min-h-screen font-sans antialiased overflow-x-hidden">
+      {/* Intro Animation */}
+      {showIntro && <IntroAnimation onDone={handleIntroComplete} text="KLIKIN" />}
 
       {/* Contact Section */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-6 py-32">
+      <section 
+        className="min-h-screen flex flex-col items-center justify-center px-6 py-32"
+        style={{
+          opacity: contentReady ? 1 : 0,
+          transform: contentReady ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
+        }}
+      >
         {/* Heading */}
-        <div 
-          className="text-center mb-12 max-w-3xl"
-          style={{
-            opacity: introReady ? 1 : 0,
-            transform: introReady ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.8s ease-out, transform 0.8s ease-out",
-          }}
-        >
+        <div className="text-center mb-12 max-w-3xl">
           <h1 className="text-4xl md:text-6xl font-bold text-black/90 mb-4 leading-tight">
             Hubungi Kami
           </h1>
@@ -58,14 +176,7 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Card */}
-        <div 
-          className="w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl"
-          style={{
-            opacity: introReady ? 1 : 0,
-            transform: introReady ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s",
-          }}
-        >
+        <div className="w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-5">
             {/* Left Side - Contact Information */}
             <div className="lg:col-span-2 bg-[#111] text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
@@ -248,10 +359,72 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="px-6 md:px-12 lg:px-20 pb-20">
+      {/* Promo Section */}
+      <section className="py-20 px-6 md:px-12 lg:px-20">
         <div className="max-w-6xl mx-auto">
-          <CTASection />
+          <PromoSection />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section 
+        className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden"
+      >
+        <OptimizedImage
+          src="/images/footer/footer.webp"
+          alt=""
+          loading="lazy"
+          className="absolute bottom-0 left-0 w-full object-cover object-bottom pointer-events-none select-none"
+          style={{ opacity: 0.85 }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            maskImage: "linear-gradient(to top, transparent 0%, black 55%)",
+            WebkitMaskImage: "linear-gradient(to top, transparent 0%, black 55%)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(to top, rgb(245,244,240) 0%, rgba(245,244,240,0.92) 18%, rgba(245,244,240,0.55) 35%, transparent 55%)",
+          }}
+        />
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05] mb-6 text-black lg:text-white">
+            Mulai bisnis bersama<br />Klikin.
+          </h2>
+          <p className="text-sm text-black/60 lg:text-white/80 leading-relaxed mb-10">
+            Jalankan bisnis secara otomatis dengan Aplikasi Kasir Pintar dan coba gratis selama 3 bulan tanpa syarat.
+          </p>
+          {!submitted ? (
+            <form
+              onSubmit={e => { e.preventDefault(); if (formData.email) setSubmitted(true) }}
+              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+            >
+              <input
+                type="email"
+                placeholder="email@bisnis.com"
+                value={formData.email}
+                onChange={e => setFormData({...formData, email: e.target.value})}
+                required
+                className="flex-1 bg-white border border-black/10 rounded-xl px-4 py-3 text-sm text-[#111] placeholder:text-black/25 focus:outline-none focus:border-black/25 transition-colors"
+              />
+              <button
+                type="submit"
+                className="px-8 py-3 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors tracking-widest font-medium"
+              >
+                COBA GRATIS
+              </button>
+            </form>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-emerald-600/20 bg-emerald-50 text-emerald-700 text-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              {"Terima kasih! Kami akan segera menghubungi Anda."}
+            </div>
+          )}
         </div>
       </section>
 

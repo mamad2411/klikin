@@ -21,9 +21,9 @@ export function CTASection() {
   }, [])
 
   return (
-    <div
+    <section
       ref={ref}
-      className="relative w-full overflow-hidden rounded-[40px] py-32 px-6 flex items-center justify-center min-h-[400px]"
+      className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden"
       style={{
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? 'translate3d(0,0,0)' : 'translate3d(0,30px,0)',
@@ -86,6 +86,6 @@ export function CTASection() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }
