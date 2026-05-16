@@ -79,7 +79,7 @@ export function HeroSection() {
             className={`transition-all duration-1000 delay-[200ms] ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
           >
             <h1 className="font-serif text-[3.5rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[6.5rem] xl:text-[7.5rem] 2xl:text-[8.5rem] font-bold leading-[1.1] mb-6 w-full px-4 max-w-6xl mx-auto text-balance tracking-tight text-black">
-              <AnimatedText key={animationKey} text="Masa Depan Pasar" delay={0.1} isVisible={textVisible} />
+              <AnimatedText key={animationKey} text="Solusi Digital untuk Masa Depan Pasar" delay={0.1} isVisible={textVisible} />
             </h1>
           </div>
         </div>

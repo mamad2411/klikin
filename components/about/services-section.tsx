@@ -79,7 +79,7 @@ export function ServicesSection() {
 
   return (
     <section id="how-it-works" className="py-32 px-6 pb-24 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none z-0">
+      <div className="absolute top-[1%] md:top-0 left-0 right-0 flex justify-center pointer-events-none z-0">
         <span className="font-bold text-center text-[18vw] sm:text-[16vw] md:text-[14vw] lg:text-[12vw] leading-none tracking-tighter text-black/[0.05] whitespace-nowrap">
           MISI
         </span>

@@ -29,9 +29,9 @@ export function FeaturesSection() {
   const [balance, setBalance] = useState(12458.32)
   const [monthlyGrowth] = useState(23.5)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const animationRef = useRef<number>()
-  const scrollPosition = useRef(0)
-  const lastUpdateTime = useRef(0)
+  const animationRef = useRef<number | undefined>(undefined)
+  const scrollPosition = useRef<number>(0)
+  const lastUpdateTime = useRef<number>(0)
 
   const tripleTransactions = [...allTransactions, ...allTransactions, ...allTransactions]
 
@@ -73,7 +73,7 @@ export function FeaturesSection() {
 
   return (
     <section id="features" className="py-32 px-6 relative overflow-hidden">
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-center pointer-events-none z-0">
+      <div className="absolute top-[5%] md:top-1/2 -translate-y-1/2 left-0 right-0 flex justify-center pointer-events-none z-0">
         <span className="font-bold text-center text-[20vw] sm:text-[18vw] md:text-[16vw] lg:text-[14vw] leading-none tracking-tighter text-black/[0.05] whitespace-nowrap">
           KELOLA
         </span>
