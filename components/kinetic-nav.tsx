@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { gsap } from "gsap"
+import { usePathname } from "next/navigation"
 
 const NAV_LINKS = [
   { label: "Beranda", href: "/" },
@@ -27,12 +28,34 @@ export function KineticNav() {
   const mobileResourceLinksRef = useRef<(HTMLAnchorElement | null)[]>([])
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const navbarRef = useRef<HTMLDivElement>(null)
+  const navContainerRef = useRef<HTMLDivElement>(null)
   const openRef = useRef(false)
+  const pathname = usePathname()
 
   // Sync openRef with open state
   useEffect(() => {
     openRef.current = open
   }, [open])
+
+  // Page transition entrance animation
+  useEffect(() => {
+    if (navContainerRef.current) {
+      gsap.fromTo(
+        navContainerRef.current,
+        {
+          opacity: 0,
+          y: -30,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: 0.1,
+        }
+      )
+    }
+  }, [pathname])
 
   // Hide on scroll (up or down), show when idle
   useEffect(() => {
@@ -298,7 +321,7 @@ export function KineticNav() {
           pointerEvents: 'auto',
         }}
       >
-        <div className="w-full max-w-3xl">
+        <div ref={navContainerRef} className="w-full max-w-3xl" style={{ opacity: 0 }}>
           {/* Main navbar - SOLID CREAM */}
           <nav
             className="flex items-center justify-between px-5 py-3 rounded-2xl border border-black/[0.08]"
@@ -378,29 +401,29 @@ export function KineticNav() {
               {/* Hamburger button */}
               <button
                 onClick={() => setOpen(v => !v)}
-                className="md:hidden w-12 h-12 flex flex-col justify-center items-center gap-[6px] rounded-lg hover:bg-black/[0.04] transition-colors active:scale-95"
+                className="md:hidden w-14 h-14 -mr-2 flex flex-col justify-center items-center gap-[5px] rounded-lg hover:bg-black/[0.08] active:bg-black/[0.12] transition-all duration-200 active:scale-90"
                 aria-label={open ? "Close menu" : "Open menu"}
               >
                 <span
-                  className="block h-[2px] bg-black/60 transition-all duration-300 origin-center"
+                  className="block h-[2.5px] bg-black/70 transition-all duration-250 origin-center"
                   style={{
-                    width: open ? "20px" : "18px",
-                    transform: open ? "translateY(8px) rotate(45deg)" : "none",
+                    width: open ? "22px" : "20px",
+                    transform: open ? "translateY(7px) rotate(45deg)" : "none",
                   }}
                 />
                 <span
-                  className="block h-[2px] bg-black/60 transition-all duration-300"
+                  className="block h-[2.5px] bg-black/70 transition-all duration-250"
                   style={{
-                    width: "18px",
+                    width: "20px",
                     opacity: open ? 0 : 1,
                     transform: open ? "scaleX(0)" : "none",
                   }}
                 />
                 <span
-                  className="block h-[2px] bg-black/60 transition-all duration-300 origin-center"
+                  className="block h-[2.5px] bg-black/70 transition-all duration-250 origin-center"
                   style={{
-                    width: open ? "20px" : "18px",
-                    transform: open ? "translateY(-8px) rotate(-45deg)" : "none",
+                    width: open ? "22px" : "20px",
+                    transform: open ? "translateY(-7px) rotate(-45deg)" : "none",
                   }}
                 />
               </button>
