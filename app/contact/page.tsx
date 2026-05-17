@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect, memo } from "react"
 import Link from "next/link"
 import { OptimizedImage } from "@/components/optimized-image"
 import { PixelIcon } from "@/components/pixel-icon"
-import { IntroAnimation } from "@/components/intro-animation"
 
 // ─── Intersection Observer hook ──────────────────────────────────────
 function useInView(threshold = 0.1, margin = '100px') {
@@ -116,8 +115,6 @@ const PromoSection = memo(function PromoSection() {
 })
 
 export default function ContactPage() {
-  const [showIntro, setShowIntro] = useState(true)
-  const [contentReady, setContentReady] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -127,12 +124,6 @@ export default function ContactPage() {
     message: ""
   })
   const [submitted, setSubmitted] = useState(false)
-
-  const handleIntroComplete = useCallback(() => {
-    setShowIntro(false)
-    // Delay content reveal slightly for smoother transition
-    setTimeout(() => setContentReady(true), 100)
-  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -153,17 +144,9 @@ export default function ContactPage() {
 
   return (
     <div className="bg-[#F5F4F0] min-h-screen font-sans antialiased overflow-x-hidden">
-      {/* Intro Animation */}
-      {showIntro && <IntroAnimation onDone={handleIntroComplete} text="KLIKIN" />}
-
       {/* Contact Section */}
       <section 
         className="min-h-screen flex flex-col items-center justify-center px-6 py-32"
-        style={{
-          opacity: contentReady ? 1 : 0,
-          transform: contentReady ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)',
-        }}
       >
         {/* Heading */}
         <div className="text-center mb-12 max-w-3xl">

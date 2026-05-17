@@ -4,7 +4,6 @@ import { ServicesSection } from "@/components/about/services-section"
 import { FeaturesSection } from "@/components/about/features-section"
 import { PricingSection } from "@/components/about/pricing-section"
 import { TestimonialsSection } from "@/components/about/testimonials-section"
-import { FAQSection } from "@/components/about/faq-section"
 import { CTASection as AboutCTASection } from "@/components/about/cta-section"
 import { CTASection as MainCTASection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
@@ -19,7 +18,6 @@ export default function AboutPage() {
       <AboutCTASection />
       <PricingSection />
       <TestimonialsSection />
-      <FAQSection />
       <MainCTASection />
       <Footer />
     </main>

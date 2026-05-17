@@ -6,9 +6,8 @@ import {
   useEffect,
   useRef,
   useCallback,
-  useSyncExternalStore,
 } from "react"
-import { IntroAnimation, INTRO_DURATION_MS } from "./intro-animation"
+import { IntroAnimation } from "./intro-animation"
 import { KineticNav } from "./kinetic-nav"
 
 const ROUTE_NAMES: Record<string, string> = {
@@ -17,70 +16,36 @@ const ROUTE_NAMES: Record<string, string> = {
   "/about": "TENTANG KAMI",
 }
 
-/**
- * Stable subscription: any SPA navigation (Link) or browser back/forward must notify React.
- * usePathname alone can miss / reorder updates vs the real URL — useSyncExternalStore fixes that.
- */
-function subscribeToLocation(onStoreChange: () => void) {
-  const emit = () => onStoreChange()
-
-  window.addEventListener("popstate", emit)
-
-  const push = history.pushState.bind(history)
-  const replace = history.replaceState.bind(history)
-
-  history.pushState = (...args: Parameters<History["pushState"]>) => {
-    const ret = push(...args)
-    queueMicrotask(emit)
-    return ret
-  }
-  history.replaceState = (...args: Parameters<History["replaceState"]>) => {
-    const ret = replace(...args)
-    queueMicrotask(emit)
-    return ret
-  }
-
-  return () => {
-    window.removeEventListener("popstate", emit)
-    history.pushState = push
-    history.replaceState = replace
-  }
-}
-
-function readPathSnapshot() {
-  return window.location.pathname
-}
-
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
-  const serverPathname = usePathname()
-  const browserPathname = useSyncExternalStore(
-    subscribeToLocation,
-    readPathSnapshot,
-    () => serverPathname
-  )
-
+  const pathname = usePathname()
   const prevPathRef = useRef<string | null>(null)
+  const isInitialMountRef = useRef(true)
   
-  // Initial state logic to prevent flash on first load
+  // Initial state: show intro on first load
   const [showIntro, setShowIntro] = useState(true)
   const [contentVisible, setContentVisible] = useState(false)
   const [introText, setIntroText] = useState(
-    () => ROUTE_NAMES[serverPathname] || "KLIKIN"
+    () => ROUTE_NAMES[pathname] || "KLIKIN"
   )
   const [introKey, setIntroKey] = useState(0)
+  const [isClient, setIsClient] = useState(false)
+
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true)
+    console.log('🖥️ Client-side initialized')
+  }, [])
 
   const onIntroDone = useCallback(() => {
+    console.log('✅ Intro animation done')
     setShowIntro(false)
     setContentVisible(true)
   }, [])
-
 
   // Lock scroll during intro to prevent double scrollbars
   useEffect(() => {
     const html = document.documentElement
     if (showIntro) {
-      // Use overflow: hidden to lock scroll, but prevent the scrollbar from disappearing 
-      // which causes layout shift. Instead, we just lock it.
       html.style.setProperty('overflow', 'hidden', 'important')
     } else {
       html.style.removeProperty('overflow')
@@ -90,122 +55,137 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [showIntro])
 
-  // If intro timers ever fail in the client, never leave the site stuck on a full-screen veil.
+  // Safety timer untuk intro
   useEffect(() => {
     if (!showIntro) return
-    // Safety: hide intro after 3.5s regardless (it should take ~1.8s).
     const t = window.setTimeout(() => {
+      console.log('⏰ Safety timer triggered - hiding intro')
       setShowIntro(false)
       setContentVisible(true)
     }, 3500)
     return () => clearTimeout(t)
   }, [showIntro, introKey])
 
-  // Replay intro whenever the real URL path changes (Link, back, forward, bfcache restore).
+  // Ensure content is always visible when intro is not showing
   useEffect(() => {
-    if (prevPathRef.current === null) {
-      prevPathRef.current = browserPathname
+    if (!showIntro && !contentVisible) {
+      console.log('🔧 Ensuring content is visible (intro hidden but content not visible)')
+      setContentVisible(true)
+    }
+  }, [showIntro, contentVisible])
+
+  // SOLUSI UTAMA: Gunakan useEffect dengan dependency pathname
+  // Ini akan menangkap SEMUA perubahan route, termasuk back/forward
+  useEffect(() => {
+    if (!isClient) return
+    
+    console.log('🔄 Pathname changed:', pathname)
+    
+    // Skip initial mount logic - handled by initial state
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false
+      prevPathRef.current = pathname
       return
     }
-    if (prevPathRef.current === browserPathname) return
-    prevPathRef.current = browserPathname
-    setIntroText(ROUTE_NAMES[browserPathname] || "KLIKIN")
-    setIntroKey((k) => k + 1)
-    setShowIntro(true)
-    setContentVisible(false)
-  }, [browserPathname])
-
-  // BFCache & History Navigation: Handle cases where the browser restores a frozen state.
-  useEffect(() => {
-    const handleNavigation = (e?: PageTransitionEvent) => {
-      const isBFCache = e?.persisted;
-      const navEntries = typeof window !== 'undefined' && window.performance?.getEntriesByType?.("navigation");
-      const navEntry = navEntries && navEntries.length > 0 ? (navEntries[0] as PerformanceNavigationTiming) : null;
-      const isBackForward = isBFCache || navEntry?.type === "back_forward" || (window.performance?.navigation?.type === 2);
-
-      if (isBackForward) {
-        // Force state reset if back/forward is detected
-        setShowIntro(true);
-        setContentVisible(false);
-        setIntroKey(prev => prev + 1);
-        
-        // Reliability: if the page feels stuck, reload it
-        const sessionKey = 'last_nav_reload';
-        const lastReload = sessionStorage.getItem(sessionKey);
-        const now = Date.now();
-        
-        if (!lastReload || now - parseInt(lastReload) > 2000) {
-          sessionStorage.setItem(sessionKey, now.toString());
-          window.location.reload();
-        }
-      }
-    };
-
-    window.addEventListener("pageshow", handleNavigation);
     
-    // Also listen to popstate directly for more immediate feedback
-    window.addEventListener("popstate", () => {
-      // Small delay to let the URL update and React catch up
-      setTimeout(() => {
-        const navEntries = window.performance?.getEntriesByType?.("navigation");
-        const navEntry = navEntries && navEntries.length > 0 ? (navEntries[0] as PerformanceNavigationTiming) : null;
-        if (navEntry?.type === "back_forward") {
-          setShowIntro(true);
-          setContentVisible(false);
-          setIntroKey(prev => prev + 1);
-        }
-      }, 10);
-    });
+    // Trigger intro animation on path change
+    if (prevPathRef.current !== pathname) {
+      console.log('🎯 Route changed from', prevPathRef.current, 'to', pathname)
+      prevPathRef.current = pathname
+      
+      setIntroText(ROUTE_NAMES[pathname] || "KLIKIN")
+      setIntroKey((k) => k + 1)
+      setShowIntro(true)
+      setContentVisible(false)
+    }
+  }, [pathname, isClient])
 
-    return () => {
-      window.removeEventListener("pageshow", handleNavigation);
-    };
-  }, []);
-
-  const [isClient, setIsClient] = useState(false)
+  // TANGKAP BFCache (pageshow)
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    if (!isClient) return
+    
+    const handleBFCache = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        console.log('📄 BFCache restoration detected')
+        window.location.reload() // Simplest way to fix BFCache issues with complex animations
+      }
+    }
+    
+    window.addEventListener('pageshow', handleBFCache)
+    return () => window.removeEventListener('pageshow', handleBFCache)
+  }, [isClient])
+
+  // Debug state
+  useEffect(() => {
+    if (isClient) {
+      console.log('📊 State - showIntro:', showIntro, 'contentVisible:', contentVisible, 'introKey:', introKey)
+    }
+  }, [showIntro, contentVisible, introKey, isClient])
 
   return (
     <>
       {/* Intro Layer - Highest Z-index to cover everything */}
-      {isClient && (
-        <div 
-          className="fixed inset-0 bg-[#F5F4F0] transition-opacity duration-300"
-          style={{ 
-            zIndex: 9999,
-            opacity: showIntro ? 1 : 0,
-            visibility: showIntro ? 'visible' : 'hidden',
-            pointerEvents: showIntro ? 'auto' : 'none',
-          }}
-        >
+      <div 
+        className="fixed inset-0 bg-[#F5F4F0]"
+        style={{ 
+          zIndex: 9999,
+          opacity: showIntro ? 1 : 0,
+          visibility: showIntro ? 'visible' : 'hidden',
+          pointerEvents: showIntro ? 'auto' : 'none',
+          transition: showIntro ? 'none' : 'opacity 300ms ease-out',
+        }}
+      >
+        {isClient && showIntro && (
           <IntroAnimation
             key={introKey}
             onDone={onIntroDone}
             text={introText}
           />
-        </div>
-      )}
+        )}
+      </div>
       
-      {/* Navbar outside the transformed content div to stay fixed to viewport */}
-      {contentVisible && <KineticNav />}
+      {/* Navbar - Always render but control visibility */}
+      <div style={{
+        opacity: contentVisible ? 1 : 0,
+        visibility: contentVisible ? 'visible' : 'hidden',
+        transition: 'opacity 300ms ease-out',
+        pointerEvents: contentVisible ? 'auto' : 'none',
+      }}>
+        <KineticNav />
+      </div>
 
+      {/* Main Content - Forced remount on pathname change to re-trigger animations */}
       <div 
+        key={pathname}
         className={`transition-all duration-700 ease-out w-full`}
         style={{
           opacity: contentVisible ? 1 : 0,
           transform: contentVisible ? 'translateY(0)' : 'translateY(10px)',
-          display: showIntro ? 'none' : 'block',
           visibility: contentVisible ? 'visible' : 'hidden',
-          overflow: contentVisible ? '' : 'hidden',
           willChange: 'opacity, transform',
           position: 'relative',
           zIndex: 1,
           width: '100%',
+          minHeight: '100vh',
+          backgroundColor: '#F5F4F0',
+          pointerEvents: contentVisible ? 'auto' : 'none',
         }}
       >
+        {/* Always render children, but they might be hidden by opacity/visibility */}
         {children}
+        
+        {/* Fallback content jika children tidak terlihat */}
+        {!contentVisible && isClient && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#F5F4F0',
+            zIndex: 2,
+          }} />
+        )}
       </div>
     </>
   )

@@ -228,7 +228,7 @@ export function KineticNav() {
                   fill="none" 
                   stroke="currentColor" 
                   strokeWidth="2" 
-                  className={`transition-transform duration-300 ${mobileResourceOpen ? 'rotate-180' : ''} text-black/30 group-hover:text-black/60`}
+                  className={`transition-transform duration-500 ease-out ${mobileResourceOpen ? 'rotate-180' : 'rotate-0'} text-black/30 group-hover:text-black/60`}
                 >
                   <path d="M6 9l6 6 6-6"/>
                 </svg>
@@ -236,19 +236,27 @@ export function KineticNav() {
               </button>
               
               <div 
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${mobileResourceOpen ? 'max-h-60 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}
+                className={`overflow-hidden transition-all duration-500 ease-out ${mobileResourceOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}
+                style={{
+                  transitionProperty: 'max-height, opacity, margin-top',
+                }}
               >
-                <div className="flex flex-col gap-1 ml-4 border-l border-black/[0.05]">
+                <div className="flex flex-col gap-1 ml-4 border-l border-black/[0.05] pl-2">
                   {RESOURCE_LINKS.map((link, i) => (
                     <a
                       key={link.label}
                       ref={el => { mobileResourceLinksRef.current[i] = el }}
                       href={link.href}
                       onClick={close}
-                      className="group relative px-4 py-3 text-lg font-light text-black/60 hover:text-black transition-colors duration-300 rounded-xl hover:bg-black/[0.03] flex items-center justify-between"
+                      className="group relative px-4 py-3 text-lg font-light text-black/60 hover:text-black rounded-xl hover:bg-black/[0.03] flex items-center justify-between"
+                      style={{
+                        transform: mobileResourceOpen ? 'translateX(0)' : 'translateX(-10px)',
+                        opacity: mobileResourceOpen ? 1 : 0,
+                        transition: `all 0.4s ease-out ${i * 0.1}s`,
+                      }}
                     >
                       <span className="relative z-10">{link.label}</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="opacity-0 group-hover:opacity-40 transition-opacity">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="opacity-0 group-hover:opacity-40 transition-opacity duration-300">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                       </svg>
                     </a>

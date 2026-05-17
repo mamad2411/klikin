@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Hapus output: 'export' untuk development
+  // output: 'export',
+  
+  // Untuk static export, trailingSlash: true membantu dengan routing
+  trailingSlash: false, // false untuk development
+  
+  // Base path jika deploy di subdirectory (contoh: '/my-app')
+  // basePath: '',
   
   typescript: {
     ignoreBuildErrors: true,

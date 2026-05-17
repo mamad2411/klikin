@@ -60,8 +60,27 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# SPA redirect
+# SPA redirect - DISABLED untuk Next.js static export
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
+
+# Redirect untuk Next.js static export - client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# Fallback untuk client-side routing
+[[redirects]]
+  from = "/404"
+  to = "/404.html"
+  status = 404
+
+# Handle client-side routing untuk semua path
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  conditions = { Status = "404" }

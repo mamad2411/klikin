@@ -155,8 +155,8 @@ export function RealtimePropertyCard() {
 
       <div className="mb-6">
         <p className="mb-3 text-sm font-medium text-slate-700">Grafik Penjualan Hari Ini</p>
-        <div className="h-32">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-32 min-h-[128px]">
+          <ResponsiveContainer width="100%" height="100%" minHeight={128}>
             <BarChart data={hourlyData}>
               <XAxis
                 dataKey="hour"

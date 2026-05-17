@@ -58,7 +58,19 @@ function AnimatedIcon({ Icon, delay = 0 }: { Icon: any; delay?: number }) {
 
 export function ServicesSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,26 +122,27 @@ export function ServicesSection() {
           {/* Background image that spans full width */}
           <div className="absolute inset-0 w-full h-full">
             <img
-              src="/images/7aecbceb-cbd3-4cbd-901c-dd0125d41525.png"
-              alt="Beautiful house"
-              className={`w-full h-full object-cover transition-transform duration-1000 ease-out ${
+              src={isMobile ? "/images/about/pasar-tradisional-indonesia.webp" : "/images/about/pasar.webp"}
+              alt="transaksi pasar"
+              className={`w-full h-full object-cover object-center transition-transform duration-1000 ease-out ${
                 isVisible ? "scale-100" : "scale-110"
               }`}
+              style={{ minHeight: '100%', minWidth: '100%' }}
             />
             {/* Overlay for better text readability */}
             <div className="absolute inset-0 bg-black/20" />
           </div>
 
           {/* Text content on top */}
-          <div className="relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="order-1 lg:order-2 space-y-8">
-              <div className="space-y-4">
-                <p className="text-sm uppercase tracking-[0.2em] text-white/80 font-medium">Misi Kami</p>
-                <h2 className="font-sans md:text-4xl lg:text-5xl font-medium text-white text-balance text-5xl leading-tight">
+          <div className="relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center px-4 md:px-0">
+            <div className="order-1 lg:order-2 space-y-6 md:space-y-8">
+              <div className="space-y-3 md:space-y-4">
+                <p className="text-xs md:text-sm uppercase tracking-[0.2em] text-white/80 font-medium">Misi Kami</p>
+                <h2 className="font-sans text-3xl md:text-4xl lg:text-5xl font-medium text-white text-balance leading-tight">
                   Mendigitalkan Pasar Tradisional
                 </h2>
               </div>
-              <div className="space-y-6 text-white/90 leading-relaxed text-lg">
+              <div className="space-y-4 md:space-y-6 text-white/90 leading-relaxed text-sm md:text-base lg:text-lg">
                 <p>
                   Di Klikin, kami percaya bahwa kemajuan teknologi harus bisa dirasakan oleh semua orang, termasuk pedagang di pasar tradisional. Platform kami menghubungkan pedagang langsung dengan pembeli, tanpa biaya perantara yang memberatkan.
                 </p>
