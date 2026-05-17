@@ -74,6 +74,19 @@ export default function RootLayout({
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
         <link rel="dns-prefetch" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+
+        {/* BRUTE FORCE BFCache Fix: Force reload if page is restored from cache */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              window.addEventListener('pageshow', function(event) {
+                if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                  window.location.reload();
+                }
+              });
+            })();
+          `
+        }} />
       </head>
       <body className={`${_geist.className} ${_geistMono.className} ${_courierPrime.className} ${_ibmPlexSans.className} ${_playfair.className} antialiased`}>
         <LayoutWrapper>
